@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraAttend - Anti-Proxy Attendance Management</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Link Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glow-bg">
+    <div class="blob blob-purple"></div>
+    <div class="blob blob-cyan"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <i data-lucide="shield-check"></i>
+      </div>
+      <div>
+        <h1>AuraAttend</h1>
+        <p class="subtitle">Secure Anti-Proxy Attendance System</p>
+      </div>
+    </div>
+    <div class="system-status">
+      <span class="status-indicator online"></span>
+      <span class="status-text">Server Active</span>
+    </div>
+  </header>
+
+  <main class="dashboard-grid">
+    <!-- LEFT: Teacher Control Center -->
+    <section class="panel teacher-panel glass-card">
+      <div class="panel-header">
+        <div class="header-title">
+          <i data-lucide="presentation" class="header-icon"></i>
+          <h2>Teacher Control Center</h2>
+        </div>
+        <span class="badge teacher-badge">Instructor Console</span>
+      </div>
+
+      <div class="class-selector-card">
+        <label for="class-select">Select Active Subject Class</label>
+        <div class="selector-row">
+          <select id="class-select" class="custom-select">
+            <!-- Loaded dynamically from API -->
+          </select>
+          <button id="session-btn" class="btn btn-primary">
+            <i data-lucide="play"></i> Start Session
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Session Monitor (Hidden when session is inactive) -->
+      <div id="live-session-monitor" class="monitor-card inactive">
+        <div class="monitor-status-header">
+          <div class="session-indicator-group">
+            <span class="pulse-dot"></span>
+            <span class="session-indicator-text">Session Active: <strong id="active-class-name">-</strong></span>
+          </div>
+          <button id="stop-session-btn" class="btn btn-danger btn-sm">
+            <i data-lucide="square"></i> End Session
+          </button>
+        </div>
+
+        <div class="session-security-grid">
+          <!-- Dynamic Security Tag / QR -->
+          <div class="security-tag-box glass-inset">
+            <div class="box-title">
+              <i data-lucide="key-round"></i>
+              <span>Active Security Tag</span>
+            </div>
+            
+            <div class="otp-container">
+              <div id="active-otp" class="otp-text">------</div>
+            </div>
+            
+            <div class="timer-wrapper">
+              <div class="timer-bar-container">
+                <div id="timer-bar" class="timer-bar"></div>
+              </div>
+              <span class="timer-label">Tag rotates in <span id="timer-seconds">10</span>s</span>
+            </div>
+
+            <div class="qr-container">
+              <canvas id="qr-canvas"></canvas>
+              <div id="qr-placeholder" class="qr-placeholder">
+                <i data-lucide="qr-code"></i>
+                <p>Generating Token...</p>
+              </div>
+            </div>
+            <p class="security-info">Students must match this dynamic token to submit attendance</p>
+          </div>
+
+          <!-- Geofence Info & Details -->
+          <div class="geofence-details-box glass-inset">
+            <div class="box-title">
+              <i data-lucide="map-pin"></i>
+              <span>Geofencing Coordinates</span>
+            </div>
+            <div class="geo-coords-list">
+              <div class="geo-item">
+                <span class="geo-label">Classroom Location</span>
+                <span id="classroom-coords" class="geo-val">Checking...</span>
+              </div>
+              <div class="geo-item">
+                <span class="geo-label">Class Room</span>
+                <span id="classroom-room" class="geo-val">-</span>
+              </div>
+              <div class="geo-item">
+                <span class="geo-label">Geofence Radius</span>
+                <span class="geo-val highlight">50 Meters</span>
+              </div>
+            </div>
+
+            <div class="security-logs-container">
+              <h4>Activity logs</h4>
+              <div id="security-alerts" class="logs-scroller">
+                <p class="empty-log">Awaiting first check-in...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical Stats & Charts -->
+      <div id="stats-section" class="stats-container">
+        <h3>Class Overview & Stats</h3>
+        <div class="stats-summary-cards">
+          <div class="mini-stat-card glass-inset">
+            <span class="mini-stat-label">Total Classes</span>
+            <span id="stat-total-classes" class="mini-stat-val">-</span>
+          </div>
+          <div class="mini-stat-card glass-inset">
+            <span class="mini-stat-label">Registered Students</span>
+            <span id="stat-total-students" class="mini-stat-val">-</span>
+          </div>
+          <div class="mini-stat-card glass-inset">
+            <span class="mini-stat-label">Avg Attendance</span>
+            <span class="mini-stat-val highlight">84%</span>
+          </div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Student Portal (Mobile Viewport Mockup) + Attendance Feed -->
+    <div class="right-column-grid">
+      <!-- Student Portal Mockup -->
+      <section class="panel student-panel glass-card">
+        <div class="panel-header">
+          <div class="header-title">
+            <i data-lucide="smartphone" class="header-icon"></i>
+            <h2>Student Portal</h2>
+          </div>
+          <span class="badge mobile-mock-badge">Mobile Mockup</span>
+        </div>
+
+        <div class="mobile-frame">
+          <div class="phone-status-bar">
+            <span>9:41 AM</span>
+            <div class="status-bar-icons">
+              <i data-lucide="wifi"></i>
+              <i data-lucide="battery"></i>
+            </div>
+          </div>
+
+          <div class="phone-content-scroller">
+            <div class="phone-header">
+              <i data-lucide="shield-check" class="phone-logo"></i>
+              <h3 id="phone-title">Student Sign-In</h3>
+              <p id="phone-subtitle">Mark presence for active classroom session</p>
+            </div>
+
+            <!-- Tabs to toggle forms -->
+            <div class="phone-tabs">
+              <button type="button" id="tab-signin-btn" class="phone-tab-btn active">Sign In</button>
+              <button type="button" id="tab-register-btn" class="phone-tab-btn">Join / Register</button>
+            </div>
+
+            <!-- Submit Attendance Form -->
+            <form id="attendance-form" class="phone-form">
+              <div class="form-group">
+                <label for="student-roll"><i data-lucide="user"></i> Roll Number</label>
+                <input type="text" id="student-roll" placeholder="e.g. S101" required class="phone-input">
+                <span class="hint">Seeds: S101, S102, S103, S104, S105, S106</span>
+              </div>
+
+              <div class="form-group">
+                <label for="student-otp"><i data-lucide="key-round"></i> Dynamic Security Tag</label>
+                <input type="text" id="student-otp" placeholder="6-digit OTP code" maxlength="6" required class="phone-input">
+                <span class="hint">Must match the code on the screen</span>
+              </div>
+
+              <!-- SIMULATOR CONTROLS (Extremely useful to test geofencing and proxy blocks locally) -->
+              <div class="simulator-controls glass-inset">
+                <div class="sim-header">
+                  <i data-lucide="sliders"></i>
+                  <span>Testing Simulator Controls</span>
+                </div>
+                
+                <div class="sim-field">
+                  <label for="student-device-sim">Simulated Device</label>
+                  <select id="student-device-sim" class="sim-select">
+                    <option value="dev_iphone_15">Student A's Phone (Device #1)</option>
+                    <option value="dev_pixel_8">Student B's Phone (Device #2)</option>
+                    <option value="dev_galaxy_s24">Student C's Phone (Device #3)</option>
+                  </select>
+                  <span class="sim-hint">Change this to test anti-proxy device blocking!</span>
+                </div>
+
+                <div class="sim-field">
+                  <label>Simulated Geolocation</label>
+                  <div class="radio-group">
+                    <label class="radio-label">
+                      <input type="radio" name="student-loc-sim" value="inside" checked>
+                      <span>Inside Room</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="student-loc-sim" value="outside">
+                      <span>Outside (300m)</span>
+                    </label>
+                    <label class="radio-label">
+                      <input type="radio" name="student-loc-sim" value="no-gps">
+                      <span>No GPS</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" id="submit-attendance-btn" class="btn btn-success btn-block btn-phone">
+                Submit Attendance
+              </button>
+            </form>
+
+            <!-- Register Student Form (Hidden by default) -->
+            <form id="register-form" class="phone-form hidden">
+              <div class="form-group">
+                <label for="reg-name"><i data-lucide="user"></i> Full Name</label>
+                <input type="text" id="reg-name" placeholder="e.g. John Doe" required class="phone-input">
+              </div>
+
+              <div class="form-group">
+                <label for="reg-roll"><i data-lucide="fingerprint"></i> Roll Number</label>
+                <input type="text" id="reg-roll" placeholder="e.g. S107" required class="phone-input">
+                <span class="hint">Use S107, S108, etc.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="reg-email"><i data-lucide="mail"></i> Email Address</label>
+                <input type="email" id="reg-email" placeholder="e.g. john.d@college.edu" required class="phone-input">
+              </div>
+
+              <button type="submit" id="submit-register-btn" class="btn btn-primary btn-block btn-phone">
+                Register Student
+              </button>
+            </form>
+
+            <!-- Result Feedback Notification Card -->
+            <div id="attendance-result" class="result-card hidden">
+              <div class="result-status-icon">
+                <i id="res-icon" data-lucide="circle-alert"></i>
+              </div>
+              <div class="result-details">
+                <h4 id="res-title">Status</h4>
+                <p id="res-message">Details here...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Real-time Attendance List -->
+      <section class="panel feed-panel glass-card">
+        <div class="panel-header">
+          <div class="header-title">
+            <i data-lucide="users" class="header-icon"></i>
+            <h2>Live Session Attendance Feed</h2>
+          </div>
+          <div class="count-badge"><span id="live-present-count">0</span> Present</div>
+        </div>
+
+        <div class="feed-table-container">
+          <table class="feed-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Roll No</th>
+                <th>Time</th>
+                <th>Distance</th>
+                <th>Device ID</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-feed-body">
+              <tr>
+                <td colspan="5" class="empty-feed">Start a session to see live attendance data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2026 AuraAttend. Built for High-Security Attendance Tracking. | Open directory in VS Code to run locally.</p>
+  </footer>
+
+  <!-- Include Client Script -->
+  <script src="app.js"></script>
+</body>
+</html>

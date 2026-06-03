@@ -1,0 +1,4 @@
+node_modules/
+attendance.db
+.system_generated/
+*.log
