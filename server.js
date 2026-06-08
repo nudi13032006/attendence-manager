@@ -306,6 +306,89 @@ app.post('/api/mark-attendance', async (req, res) => {
   }
 });
 
+// Endpoint for teacher registration
+app.post('/api/register-teacher', async (req, res) => {
+  const { fullName, username, email, password } = req.body;
+
+  if (!fullName || !username || !email || !password) {
+    return res.status(400).json({ error: 'Full name, username, email, and password are required.' });
+  }
+
+  try {
+    const db = await getDbConnection();
+    const existing = await db.get('SELECT id FROM teachers WHERE username = ? OR email = ?', [username.trim(), email.trim()]);
+    if (existing) {
+      await db.close();
+      return res.status(400).json({ error: 'Teacher username or email already exists.' });
+    }
+
+    await db.run(
+      'INSERT INTO teachers (full_name, username, email, password) VALUES (?, ?, ?, ?)',
+      [fullName.trim(), username.trim(), email.trim(), password.trim()]
+    );
+
+    await db.close();
+    res.json({ success: true, message: 'Teacher account created successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create teacher account.' });
+  }
+});
+
+// Endpoint for teacher login
+app.post('/api/teacher-login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required.' });
+  }
+
+  try {
+    const db = await getDbConnection();
+    const teacher = await db.get(
+      'SELECT id, full_name, username, email FROM teachers WHERE username = ? AND password = ?',
+      [username.trim(), password.trim()]
+    );
+    await db.close();
+
+    if (!teacher) {
+      return res.status(401).json({ error: 'Invalid teacher username or password.' });
+    }
+
+    res.json({ success: true, user: { role: 'teacher', ...teacher } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Teacher login failed.' });
+  }
+});
+
+// Endpoint for student login
+app.post('/api/student-login', async (req, res) => {
+  const { rollNumber, email } = req.body;
+
+  if (!rollNumber || !email) {
+    return res.status(400).json({ error: 'Roll number and email are required.' });
+  }
+
+  try {
+    const db = await getDbConnection();
+    const student = await db.get(
+      'SELECT roll_number, name, email FROM students WHERE roll_number = ? AND email = ?',
+      [rollNumber.trim().toUpperCase(), email.trim()]
+    );
+    await db.close();
+
+    if (!student) {
+      return res.status(401).json({ error: 'Student not found. Register first or check your details.' });
+    }
+
+    res.json({ success: true, user: { role: 'student', ...student } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Student login failed.' });
+  }
+});
+
 // Endpoint to register a new student
 app.post('/api/register-student', async (req, res) => {
   const { rollNumber, name, email } = req.body;

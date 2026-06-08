@@ -50,7 +50,14 @@ async function runTests() {
     const targetClass = classesRes.body[0];
     console.log(`Target class for session: ${targetClass.code} (${targetClass.name})`);
 
-    // 2. Start attendance session
+    // 2. Teacher and student login checks
+    console.log('\nTest 2: Verifying teacher and student portal login endpoints...');
+    const teacherLoginRes = await request('POST', '/api/teacher-login', { username: 'teacher', password: 'teacher123' });
+    console.log('Teacher login status:', teacherLoginRes.status, 'success=', teacherLoginRes.body.success);
+    const studentLoginRes = await request('POST', '/api/student-login', { rollNumber: 'S101', email: 'alex.j@college.edu' });
+    console.log('Student login status:', studentLoginRes.status, 'success=', studentLoginRes.body.success);
+
+    // 3. Start attendance session
     console.log('\nTest 2: Starting attendance session for class:', targetClass.id);
     const startRes = await request('POST', '/api/start-session', { classId: targetClass.id });
     console.log('Result status:', startRes.status);
@@ -59,7 +66,7 @@ async function runTests() {
     console.log('Initial OTP Security Tag:', session.otp);
     console.log('Classroom Coordinates:', session.latitude, ',', session.longitude);
 
-    // 3. Mark attendance: SUCCESS case (Inside classroom, correct OTP, unique device)
+    // 4. Mark attendance: SUCCESS case (Inside classroom, correct OTP, unique device)
     console.log('\nTest 3: Mark attendance for Alex (S101) - Success Case...');
     const successRes = await request('POST', '/api/mark-attendance', {
       rollNumber: 'S101',
@@ -71,7 +78,7 @@ async function runTests() {
     console.log('Result status:', successRes.status);
     console.log('Response body:', successRes.body);
 
-    // 4. Mark attendance: FAIL case (Proxy Check - Duplicate Device Fingerprint)
+    // 5. Mark attendance: FAIL case (Proxy Check - Duplicate Device Fingerprint)
     console.log('\nTest 4: Mark attendance for Brittany (S102) from SAME device as S101 (Proxy Block Check)...');
     const proxyRes = await request('POST', '/api/mark-attendance', {
       rollNumber: 'S102',
@@ -83,7 +90,7 @@ async function runTests() {
     console.log('Result status:', proxyRes.status);
     console.log('Response error (Expected Block):', proxyRes.body.error);
 
-    // 5. Mark attendance: FAIL case (Geofencing Block)
+    // 6. Mark attendance: FAIL case (Geofencing Block)
     console.log('\nTest 5: Mark attendance for Brittany (S102) from OUTSIDE classroom coords (Geofence Block Check)...');
     const geofenceRes = await request('POST', '/api/mark-attendance', {
       rollNumber: 'S102',
@@ -95,7 +102,7 @@ async function runTests() {
     console.log('Result status:', geofenceRes.status);
     console.log('Response error (Expected Block):', geofenceRes.body.error);
 
-    // 6. Mark attendance: FAIL case (Invalid OTP)
+    // 7. Mark attendance: FAIL case (Invalid OTP)
     console.log('\nTest 6: Mark attendance for Brittany (S102) with WRONG security code...');
     const wrongCodeRes = await request('POST', '/api/mark-attendance', {
       rollNumber: 'S102',
@@ -107,7 +114,7 @@ async function runTests() {
     console.log('Result status:', wrongCodeRes.status);
     console.log('Response error (Expected Block):', wrongCodeRes.body.error);
 
-    // 7. Check attendance feed
+    // 8. Check attendance feed
     console.log('\nTest 7: Fetching active session attendance list...');
     const feedRes = await request('GET', `/api/session-attendance/${session.id}`);
     console.log('Result status:', feedRes.status);
@@ -116,7 +123,7 @@ async function runTests() {
       console.log(`- Roll No: ${record.roll_number}, Name: ${record.student_name}, Dist: ${Math.round(record.distance_meters)}m, Device: ${record.device_fingerprint}`);
     });
 
-    // 8. End the session
+    // 9. End the session
     console.log('\nTest 8: Closing the attendance session...');
     const stopRes = await request('POST', '/api/stop-session');
     console.log('Result status:', stopRes.status);

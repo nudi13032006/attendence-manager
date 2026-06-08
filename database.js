@@ -70,6 +70,18 @@ async function initDatabase() {
     );
   `);
 
+  // Create Teachers Table for portal login
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS teachers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name TEXT NOT NULL,
+      username TEXT NOT NULL UNIQUE,
+      email TEXT NOT NULL,
+      password TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Seed Data if tables are empty
   const studentCount = await db.get('SELECT COUNT(*) as count FROM students');
   if (studentCount.count === 0) {
@@ -128,6 +140,15 @@ async function initDatabase() {
         [cls.id, cls.name, cls.code, cls.room, cls.latitude, cls.longitude]
       );
     }
+  }
+
+  const teacherCount = await db.get('SELECT COUNT(*) as count FROM teachers');
+  if (teacherCount.count === 0) {
+    console.log('Seeding default teacher account...');
+    await db.run(
+      'INSERT INTO teachers (full_name, username, email, password) VALUES (?, ?, ?, ?)',
+      ['Default Teacher', 'teacher', 'teacher@college.edu', 'teacher123']
+    );
   }
 
   console.log('Database initialization complete!');

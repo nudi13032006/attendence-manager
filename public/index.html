@@ -38,14 +38,71 @@
   </header>
 
   <main class="dashboard-grid">
+    <section id="portal-access-panel" class="panel glass-card login-panel">
+      <div class="panel-header">
+        <div class="header-title">
+          <i data-lucide="lock-keyhole" class="header-icon"></i>
+          <h2>Portal Access</h2>
+        </div>
+        <span class="badge teacher-badge">Teacher & Student Login</span>
+      </div>
+
+      <div class="login-grid">
+        <article class="glass-inset login-card">
+          <h3>Teacher Login</h3>
+          <p class="hint">Start sessions, view attendance, manage classes.</p>
+          <form id="teacher-login-form" class="phone-form compact-form">
+            <div class="form-group">
+              <label for="teacher-username">Username</label>
+              <input type="text" id="teacher-username" placeholder="teacher" required class="phone-input">
+            </div>
+            <div class="form-group">
+              <label for="teacher-password">Password</label>
+              <input type="password" id="teacher-password" placeholder="teacher123" required class="phone-input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Teacher Login</button>
+          </form>
+          <form id="teacher-register-form" class="phone-form compact-form">
+            <h4>New Teacher Register</h4>
+            <div class="form-group"><input type="text" id="teacher-full-name" placeholder="Full Name" required class="phone-input"></div>
+            <div class="form-group"><input type="text" id="teacher-reg-username" placeholder="Username" required class="phone-input"></div>
+            <div class="form-group"><input type="email" id="teacher-email" placeholder="Email" required class="phone-input"></div>
+            <div class="form-group"><input type="password" id="teacher-reg-password" placeholder="Password" required class="phone-input"></div>
+            <button type="submit" class="btn btn-secondary btn-block">Create Teacher Account</button>
+          </form>
+        </article>
+
+        <article class="glass-inset login-card">
+          <h3>Student Login</h3>
+          <p class="hint">Sign in to mark attendance using your registered roll number.</p>
+          <form id="student-login-form" class="phone-form compact-form">
+            <div class="form-group">
+              <label for="student-login-roll">Roll Number</label>
+              <input type="text" id="student-login-roll" placeholder="S101" required class="phone-input">
+            </div>
+            <div class="form-group">
+              <label for="student-login-email">Email</label>
+              <input type="email" id="student-login-email" placeholder="you@college.edu" required class="phone-input">
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Student Login</button>
+          </form>
+          <p class="hint">Student registration is still available in the student section below.</p>
+        </article>
+      </div>
+      <p id="auth-status" class="hint">Choose a role to continue. Teacher login opens the control center; student login opens the attendance portal.</p>
+    </section>
+
     <!-- LEFT: Teacher Control Center -->
-    <section class="panel teacher-panel glass-card">
+    <section id="teacher-dashboard-panel" class="panel teacher-panel glass-card hidden">
       <div class="panel-header">
         <div class="header-title">
           <i data-lucide="presentation" class="header-icon"></i>
           <h2>Teacher Control Center</h2>
         </div>
-        <span class="badge teacher-badge">Instructor Console</span>
+        <div class="header-actions">
+          <span class="badge teacher-badge">Instructor Console</span>
+          <button id="teacher-logout-btn" type="button" class="btn btn-secondary btn-sm">Back to Portal</button>
+        </div>
       </div>
 
       <div class="class-selector-card">
@@ -159,13 +216,16 @@
     <!-- RIGHT: Student Portal (Mobile Viewport Mockup) + Attendance Feed -->
     <div class="right-column-grid">
       <!-- Student Portal Mockup -->
-      <section class="panel student-panel glass-card">
+      <section id="student-dashboard-panel" class="panel student-panel glass-card hidden">
         <div class="panel-header">
           <div class="header-title">
             <i data-lucide="smartphone" class="header-icon"></i>
             <h2>Student Portal</h2>
           </div>
-          <span class="badge mobile-mock-badge">Mobile Mockup</span>
+          <div class="header-actions">
+            <span class="badge mobile-mock-badge">Mobile Mockup</span>
+            <button id="student-logout-btn" type="button" class="btn btn-secondary btn-sm">Back to Portal</button>
+          </div>
         </div>
 
         <div class="mobile-frame">

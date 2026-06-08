@@ -3,13 +3,17 @@ let currentSession = null;
 let sessionPollingInterval = null;
 let feedPollingInterval = null;
 let attendanceChart = null;
+let currentUser = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize Lucide Icons
   lucide.createIcons();
 
-  // Load classes and statistics
+  // Show the portal first
+  showPortal('home');
+
+  // Load classes and statistics for the teacher view
   loadClasses();
   loadStats();
 
@@ -18,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('stop-session-btn').addEventListener('click', stopSession);
   document.getElementById('attendance-form').addEventListener('submit', handleAttendanceSubmit);
   document.getElementById('register-form').addEventListener('submit', handleRegisterSubmit);
+  document.getElementById('teacher-login-form').addEventListener('submit', handleTeacherLogin);
+  document.getElementById('teacher-register-form').addEventListener('submit', handleTeacherRegister);
+  document.getElementById('student-login-form').addEventListener('submit', handleStudentLogin);
+  document.getElementById('teacher-logout-btn').addEventListener('click', () => showPortal('home'));
+  document.getElementById('student-logout-btn').addEventListener('click', () => showPortal('home'));
 
   // Tab buttons click listeners
   const tabSignin = document.getElementById('tab-signin-btn');
@@ -57,6 +66,113 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize anti-screenshot protection hooks
   setupScreenshotProtection();
 });
+
+function showPortal(mode) {
+  const portalPanel = document.getElementById('portal-access-panel');
+  const teacherPanel = document.getElementById('teacher-dashboard-panel');
+  const studentPanel = document.getElementById('student-dashboard-panel');
+  const statusText = document.getElementById('auth-status');
+
+  portalPanel.classList.remove('hidden');
+  teacherPanel.classList.add('hidden');
+  studentPanel.classList.add('hidden');
+
+  if (mode === 'teacher') {
+    portalPanel.classList.add('hidden');
+    teacherPanel.classList.remove('hidden');
+    if (statusText) statusText.textContent = `Signed in as teacher: ${currentUser?.full_name || 'Teacher'}`;
+  } else if (mode === 'student') {
+    portalPanel.classList.add('hidden');
+    studentPanel.classList.remove('hidden');
+    if (statusText) statusText.textContent = `Signed in as student: ${currentUser?.name || 'Student'}`;
+  } else {
+    if (statusText) statusText.textContent = 'Choose a role to continue. Teacher login opens the control center; student login opens the attendance portal.';
+    currentUser = null;
+  }
+}
+
+async function handleTeacherLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('teacher-username').value.trim();
+  const password = document.getElementById('teacher-password').value;
+  const statusText = document.getElementById('auth-status');
+
+  try {
+    const response = await fetch('/api/teacher-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      statusText.textContent = data.error || 'Teacher login failed.';
+      return;
+    }
+
+    currentUser = data.user;
+    showPortal('teacher');
+    loadClasses();
+    loadStats();
+  } catch (error) {
+    console.error(error);
+    statusText.textContent = 'Unable to reach the server.';
+  }
+}
+
+async function handleTeacherRegister(e) {
+  e.preventDefault();
+  const statusText = document.getElementById('auth-status');
+  const payload = {
+    fullName: document.getElementById('teacher-full-name').value.trim(),
+    username: document.getElementById('teacher-reg-username').value.trim(),
+    email: document.getElementById('teacher-email').value.trim(),
+    password: document.getElementById('teacher-reg-password').value
+  };
+
+  try {
+    const response = await fetch('/api/register-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    statusText.textContent = data.success ? 'Teacher account created. You can now log in.' : (data.error || 'Teacher registration failed.');
+  } catch (error) {
+    console.error(error);
+    statusText.textContent = 'Unable to create teacher account.';
+  }
+}
+
+async function handleStudentLogin(e) {
+  e.preventDefault();
+  const rollNumber = document.getElementById('student-login-roll').value.trim().toUpperCase();
+  const email = document.getElementById('student-login-email').value.trim();
+  const statusText = document.getElementById('auth-status');
+
+  try {
+    const response = await fetch('/api/student-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rollNumber, email })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      statusText.textContent = data.error || 'Student login failed.';
+      return;
+    }
+
+    currentUser = data.user;
+    document.getElementById('student-roll').value = data.user.roll_number;
+    document.getElementById('phone-title').textContent = `Welcome ${data.user.name}`;
+    document.getElementById('phone-subtitle').textContent = 'You can now mark your attendance from this portal.';
+    showPortal('student');
+  } catch (error) {
+    console.error(error);
+    statusText.textContent = 'Unable to reach the server.';
+  }
+}
 
 // Load available classes from the backend
 async function loadClasses() {

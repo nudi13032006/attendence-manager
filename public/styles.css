@@ -1072,6 +1072,36 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.login-panel {
+  margin-bottom: 1.25rem;
+}
+
+.login-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.login-card {
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.login-card h3,
+.login-card h4 {
+  margin-bottom: 0.4rem;
+}
+
+.compact-form {
+  margin-top: 0.6rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .hidden {
   display: none !important;
 }
