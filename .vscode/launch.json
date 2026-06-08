@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Attendance Manager",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm.cmd start"
+    },
+    {
+      "name": "Open Attendance App in Browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/public"
+    }
+  ]
+}
