@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('teacher-login-form').addEventListener('submit', handleTeacherLogin);
   document.getElementById('teacher-register-form').addEventListener('submit', handleTeacherRegister);
   document.getElementById('student-login-form').addEventListener('submit', handleStudentLogin);
+  document.getElementById('student-register-portal-form').addEventListener('submit', handleStudentRegisterFromPortal);
   document.getElementById('teacher-logout-btn').addEventListener('click', () => showPortal('home'));
   document.getElementById('student-logout-btn').addEventListener('click', () => showPortal('home'));
 
@@ -141,6 +142,40 @@ async function handleTeacherRegister(e) {
   } catch (error) {
     console.error(error);
     statusText.textContent = 'Unable to create teacher account.';
+  }
+}
+
+async function handleStudentRegisterFromPortal(e) {
+  e.preventDefault();
+  const statusText = document.getElementById('auth-status');
+  const payload = {
+    name: document.getElementById('student-reg-name').value.trim(),
+    rollNumber: document.getElementById('student-reg-roll').value.trim().toUpperCase(),
+    email: document.getElementById('student-reg-email').value.trim()
+  };
+
+  try {
+    const response = await fetch('/api/register-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+
+    statusText.textContent = response.ok
+      ? `Student registered successfully: ${payload.name} (${payload.rollNumber}).`
+      : (data.error || 'Student registration failed.');
+
+    if (response.ok) {
+      document.getElementById('student-reg-name').value = '';
+      document.getElementById('student-reg-roll').value = '';
+      document.getElementById('student-reg-email').value = '';
+      document.getElementById('student-login-roll').value = payload.rollNumber;
+      document.getElementById('student-login-email').value = payload.email;
+    }
+  } catch (error) {
+    console.error(error);
+    statusText.textContent = 'Unable to register student.';
   }
 }
 

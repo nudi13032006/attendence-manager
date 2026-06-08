@@ -86,7 +86,23 @@
             </div>
             <button type="submit" class="btn btn-success btn-block">Student Login</button>
           </form>
-          <p class="hint">Student registration is still available in the student section below.</p>
+
+          <form id="student-register-portal-form" class="phone-form compact-form">
+            <h4>New Student Register</h4>
+            <div class="form-group">
+              <label for="student-reg-name">Full Name</label>
+              <input type="text" id="student-reg-name" placeholder="John Doe" required class="phone-input">
+            </div>
+            <div class="form-group">
+              <label for="student-reg-roll">Roll Number</label>
+              <input type="text" id="student-reg-roll" placeholder="S107" required class="phone-input">
+            </div>
+            <div class="form-group">
+              <label for="student-reg-email">Email</label>
+              <input type="email" id="student-reg-email" placeholder="john@college.edu" required class="phone-input">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Register New Student</button>
+          </form>
         </article>
       </div>
       <p id="auth-status" class="hint">Choose a role to continue. Teacher login opens the control center; student login opens the attendance portal.</p>
